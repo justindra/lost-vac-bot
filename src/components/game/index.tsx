@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   useSharedValue,
   useFrameCallback,
@@ -33,6 +33,7 @@ const countdownSound = require("@/assets/sounds/countdown-start.mp3");
 const gameOverSound = require("@/assets/sounds/game-over.mp3");
 const levelUpSound = require("@/assets/sounds/level-up.mp3");
 const powerUpSound = require("@/assets/sounds/power-up.mp3");
+const backgroundMusic = require("@/assets/sounds/background.mp3");
 
 export const GameProvider: React.FC<React.PropsWithChildren> = ({
   children,
@@ -80,6 +81,13 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const gameOverPlayer = useAudioPlayer(gameOverSound);
   const levelUpPlayer = useAudioPlayer(levelUpSound);
   const powerUpPlayer = useAudioPlayer(powerUpSound);
+  const bgMusicPlayer = useAudioPlayer(backgroundMusic);
+
+  // Configure background music
+  useEffect(() => {
+    bgMusicPlayer.loop = true;
+    bgMusicPlayer.volume = 0.3;
+  }, [bgMusicPlayer]);
 
   const [countdownActive, setCountdownActive] = useState(false);
 
@@ -144,6 +152,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     countdownPlayer.seekTo(0);
     countdownPlayer.play();
 
+    // Start background music
+    bgMusicPlayer.play();
+
     // Animate both: fog fades in AND radius shrinks to battery-appropriate level
     fogOpacity.value = withTiming(1, { duration: COUNTDOWN_DURATION });
     const targetFogRadius =
@@ -158,7 +169,14 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       transitioning.value = false;
       setCountdownActive(false);
     }, COUNTDOWN_DURATION);
-  }, [fogOpacity, fogRadius, transitioning, battery, countdownPlayer]);
+  }, [
+    fogOpacity,
+    fogRadius,
+    transitioning,
+    battery,
+    countdownPlayer,
+    bgMusicPlayer,
+  ]);
 
   const regenerateMaze = useCallback(() => {
     const { width, height } = canvasSizeRef.current;
@@ -297,11 +315,14 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   const handleGameOver = useCallback(() => {
+    // Stop background music
+    bgMusicPlayer.pause();
+
     // Play game-over sound, then trigger navigation when it completes
     gameOverPlayer.seekTo(0);
     gameOverPlayer.play();
     setGameOver(true);
-  }, [gameOverPlayer]);
+  }, [gameOverPlayer, bgMusicPlayer]);
 
   const restartGame = useCallback(() => {
     setGameOver(false);
@@ -339,6 +360,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     powerUpsCollectedSV.value = [];
     setPowerUpsCollected([]);
 
+    // Reset background music volume (in case it was modified)
+    bgMusicPlayer.volume = 0.3;
+
     // Start countdown on the fresh maze
     startCountdown();
   }, [
@@ -360,6 +384,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     powerUpsFlat,
     powerUpsCount,
     powerUpsCollectedSV,
+    bgMusicPlayer,
   ]);
 
   useFrameCallback((frameInfo) => {

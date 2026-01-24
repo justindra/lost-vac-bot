@@ -42,7 +42,7 @@ function BatteryIndicator() {
     <View
       style={{
         flexDirection: "row",
-        alignItems: "flex-start",
+        alignItems: "center",
         gap: spacing.md,
       }}
     >
