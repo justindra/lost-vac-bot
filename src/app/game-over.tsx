@@ -1,7 +1,8 @@
-import { Text, View, Pressable } from "react-native";
+import { Text, View } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useGameOver } from "../components/game";
-import { colors } from "../styles";
+import { Button } from "../components/button";
+import { colors, fonts } from "../styles";
 
 export default function GameOverScreen() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function GameOverScreen() {
 
   const handleRestart = () => {
     restartGame();
-    router.replace("/");
+    router.replace("/game");
   };
 
   return (
@@ -30,7 +31,7 @@ export default function GameOverScreen() {
           color: colors.main,
           fontSize: 48,
           fontWeight: "bold",
-          fontFamily: "monospace",
+          fontFamily: fonts.main,
         }}
       >
         GAME OVER
@@ -39,33 +40,14 @@ export default function GameOverScreen() {
         style={{
           color: colors.main,
           fontSize: 20,
-          fontFamily: "monospace",
+          fontFamily: fonts.main,
         }}
       >
-        Mazes completed: {mazesCompleted}
+        Score: {mazesCompleted}
       </Text>
-      <Pressable
-        onPress={handleRestart}
-        style={({ pressed }) => ({
-          borderWidth: 2,
-          borderColor: colors.main,
-          paddingHorizontal: 24,
-          paddingVertical: 12,
-          marginTop: 16,
-          opacity: pressed ? 0.6 : 1,
-        })}
-      >
-        <Text
-          style={{
-            color: colors.main,
-            fontSize: 24,
-            fontFamily: "monospace",
-            fontWeight: "bold",
-          }}
-        >
-          RESTART
-        </Text>
-      </Pressable>
+      <View style={{ marginTop: 16 }}>
+        <Button label="RESTART" onPress={handleRestart} />
+      </View>
     </View>
   );
 }
