@@ -1,7 +1,7 @@
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { Canvas, Circle, Rect } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
-import { usePlayer, useMaze, useCanvasSize } from "../game";
+import { usePlayer, useMaze, useCanvasSize, useFlash } from "../game";
 import { PLAYER_RADIUS } from "@/src/maze/constants";
 import { colors } from "@/src/styles";
 import { Maze } from "./maze";
@@ -14,6 +14,7 @@ const GameScreen: React.FC = () => {
   const { playerX, playerY } = usePlayer();
   const mazeData = useMaze();
   const { canvasSize, setCanvasSize } = useCanvasSize();
+  const flashOpacity = useFlash();
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -22,6 +23,7 @@ const GameScreen: React.FC = () => {
 
   const cx = useDerivedValue(() => playerX.value);
   const cy = useDerivedValue(() => playerY.value);
+  const flashAlpha = useDerivedValue(() => flashOpacity.value);
 
   return (
     <View
@@ -46,6 +48,15 @@ const GameScreen: React.FC = () => {
           <Maze walls={mazeData.walls} />
           {/* Player */}
           <Circle cx={cx} cy={cy} r={PLAYER_RADIUS} color={PLAYER_COLOR} />
+          {/* Flash overlay on level transition */}
+          <Rect
+            x={0}
+            y={0}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            color={colors.main}
+            opacity={flashAlpha}
+          />
         </Canvas>
       )}
     </View>

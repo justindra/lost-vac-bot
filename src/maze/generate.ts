@@ -1,5 +1,35 @@
 import { CELL_SIZE } from "./constants";
-import type { MazeData, Wall } from "./types";
+import type { MazeData, MazeLocation, Wall } from "./types";
+
+const ALL_LOCATIONS: MazeLocation[] = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+  "center",
+];
+
+/**
+ * Map a MazeLocation to cell coordinates (col, row) within the grid.
+ */
+function locationToCell(
+  location: MazeLocation,
+  cols: number,
+  rows: number,
+): [number, number] {
+  switch (location) {
+    case "top-left":
+      return [0, 0];
+    case "top-right":
+      return [cols - 1, 0];
+    case "bottom-left":
+      return [0, rows - 1];
+    case "bottom-right":
+      return [cols - 1, rows - 1];
+    case "center":
+      return [Math.floor(cols / 2), Math.floor(rows / 2)];
+  }
+}
 
 // Direction vectors: [dx, dy] for N, S, E, W
 const DIRS = [
@@ -27,8 +57,14 @@ const DIR_FLAGS: [number, number][] = [
  * Generate a maze using recursive backtracker (DFS).
  * Each cell starts with all 4 walls. The algorithm carves passages
  * by removing walls between adjacent cells.
+ * The DFS starts from the given cell, which tends to create longer paths from there.
  */
-function generateGrid(cols: number, rows: number): number[][] {
+function generateGrid(
+  cols: number,
+  rows: number,
+  startCol: number,
+  startRow: number,
+): number[][] {
   // Initialize grid: each cell has all walls (N|S|E|W = 15)
   const grid: number[][] = Array.from({ length: rows }, () =>
     Array(cols).fill(N | S | E | W),
@@ -40,8 +76,6 @@ function generateGrid(cols: number, rows: number): number[][] {
 
   // Iterative DFS with explicit stack (avoids call stack overflow for large mazes)
   const stack: [number, number][] = [];
-  const startCol = 0;
-  const startRow = 0;
 
   visited[startRow][startCol] = true;
   stack.push([startCol, startRow]);
@@ -155,10 +189,13 @@ function flattenWalls(walls: Wall[]): number[] {
 
 /**
  * Generate a complete maze that fits within the given canvas dimensions.
+ * @param startLocation - Which location the player starts at (defaults to "center").
+ *   The exit is randomly chosen from the remaining 4 locations.
  */
 export function generateMaze(
   canvasWidth: number,
   canvasHeight: number,
+  startLocation: MazeLocation = "center",
 ): MazeData {
   const cellSize = CELL_SIZE;
   const cols = Math.floor(canvasWidth / cellSize);
@@ -172,7 +209,21 @@ export function generateMaze(
   const offsetX = (canvasWidth - safeCols * cellSize) / 2;
   const offsetY = (canvasHeight - safeRows * cellSize) / 2;
 
-  const grid = generateGrid(safeCols, safeRows);
+  // Determine start and exit cells
+  const [startCol, startRow] = locationToCell(
+    startLocation,
+    safeCols,
+    safeRows,
+  );
+
+  // Pick a random exit from the other 4 locations
+  const exitCandidates = ALL_LOCATIONS.filter((loc) => loc !== startLocation);
+  const exitLocation =
+    exitCandidates[Math.floor(Math.random() * exitCandidates.length)];
+  const [exitCol, exitRow] = locationToCell(exitLocation, safeCols, safeRows);
+
+  // Generate the maze grid, starting DFS from the player's start cell
+  const grid = generateGrid(safeCols, safeRows, startCol, startRow);
   const walls = gridToWalls(
     grid,
     safeCols,
@@ -183,16 +234,15 @@ export function generateMaze(
   );
   const wallsFlat = flattenWalls(walls);
 
-  // Start position: center of top-left cell (offset applied)
+  // Pixel positions: center of the respective cells
   const start = {
-    x: offsetX + cellSize / 2,
-    y: offsetY + cellSize / 2,
+    x: offsetX + startCol * cellSize + cellSize / 2,
+    y: offsetY + startRow * cellSize + cellSize / 2,
   };
 
-  // Exit position: center of bottom-right cell (offset applied)
   const exit = {
-    x: offsetX + (safeCols - 1) * cellSize + cellSize / 2,
-    y: offsetY + (safeRows - 1) * cellSize + cellSize / 2,
+    x: offsetX + exitCol * cellSize + cellSize / 2,
+    y: offsetY + exitRow * cellSize + cellSize / 2,
   };
 
   return {
@@ -201,6 +251,8 @@ export function generateMaze(
     wallCount: walls.length,
     start,
     exit,
+    startLocation,
+    exitLocation,
     cols: safeCols,
     rows: safeRows,
     cellSize,

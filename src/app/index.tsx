@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GameProvider } from "../components/game";
 import { GameScreenLoader as GameScreen } from "../components/game-screen";
 import { colors } from "../styles";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function Index() {
   return (
@@ -18,10 +19,13 @@ export default function Index() {
       >
         {/* Left Panel */}
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Text style={{ color: colors.main }}>Left Panel</Text>
+          {/* Battery Level */}
+
+          <Text style={{ color: colors.main }}>Battery Level</Text>
+          <FontAwesome name="battery-full" size={32} color={colors.main} />
         </View>
         {/* Game Screen */}
-        <View style={{ flex: 3 }}>
+        <View style={{ flex: 3, padding: 10 }}>
           <GameScreen />
         </View>
         {/* Right Panel */}

@@ -10,6 +10,7 @@ type GameContextType = {
   mazeData: MazeData | null;
   canvasSize: { width: number; height: number };
   setCanvasSize: (size: { width: number; height: number }) => void;
+  flashOpacity: SharedValue<number>;
 };
 
 export const GameContext = createContext<GameContextType | null>(null);

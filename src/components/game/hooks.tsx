@@ -28,3 +28,8 @@ export const useCanvasSize = () => {
   const { canvasSize, setCanvasSize } = useGame();
   return { canvasSize, setCanvasSize };
 };
+
+export const useFlash = () => {
+  const { flashOpacity } = useGame();
+  return flashOpacity;
+};
