@@ -73,8 +73,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
 
   // Start the countdown sequence: show full map, animate fog closed, block movement
   const startCountdown = useCallback(() => {
-    // Make fog overlay invisible (full map visible)
+    // Make fog overlay invisible and radius full (so gradient covers entire screen)
     fogOpacity.value = 0;
+    fogRadius.value = FOG_INITIAL_RADIUS;
     // Block movement
     transitioning.value = true;
     setCountdownActive(true);
@@ -83,15 +84,21 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     countdownPlayer.seekTo(0);
     countdownPlayer.play();
 
-    // Animate fog overlay opacity from 0 (invisible) to 1 (normal fog) over countdown duration
+    // Animate both: fog fades in AND radius shrinks to battery-appropriate level
     fogOpacity.value = withTiming(1, { duration: COUNTDOWN_DURATION });
+    const targetFogRadius =
+      FOG_MIN_RADIUS +
+      (FOG_INITIAL_RADIUS - FOG_MIN_RADIUS) * (battery.value / 100);
+    fogRadius.value = withTiming(targetFogRadius, {
+      duration: COUNTDOWN_DURATION,
+    });
 
     // After countdown completes, unblock movement
     setTimeout(() => {
       transitioning.value = false;
       setCountdownActive(false);
     }, COUNTDOWN_DURATION);
-  }, [fogOpacity, transitioning, countdownPlayer]);
+  }, [fogOpacity, fogRadius, transitioning, battery, countdownPlayer]);
 
   const regenerateMaze = useCallback(() => {
     const { width, height } = canvasSizeRef.current;
