@@ -6,10 +6,10 @@ import { colors, fonts } from "../styles";
 
 export default function GameOverScreen() {
   const router = useRouter();
-  const { level } = useLocalSearchParams<{ level: string }>();
+  const { score } = useLocalSearchParams<{ score: string }>();
   const { restartGame } = useGameOver();
 
-  const mazesCompleted = Math.max(0, Number(level) - 1);
+  const finalScore = Math.max(0, Number(score));
 
   const handleRestart = () => {
     restartGame();
@@ -43,7 +43,7 @@ export default function GameOverScreen() {
           fontFamily: fonts.main,
         }}
       >
-        Score: {mazesCompleted}
+        Score: {finalScore}
       </Text>
       <View style={{ marginTop: 16 }}>
         <Button label="RESTART" onPress={handleRestart} />

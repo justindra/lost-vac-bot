@@ -17,6 +17,8 @@ type GameContextType = {
   gameOver: boolean;
   restartGame: () => void;
   level: number;
+  score: number;
+  visitedCells: Set<number>;
   countdownActive: boolean;
 };
 

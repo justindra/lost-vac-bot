@@ -7,10 +7,18 @@ import {
   RadialGradient,
 } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
-import { usePlayer, useMaze, useCanvasSize, useFlash, useFog } from "../game";
+import {
+  usePlayer,
+  useMaze,
+  useCanvasSize,
+  useFlash,
+  useFog,
+  useVisitedCells,
+} from "../game";
 import { PLAYER_RADIUS } from "@/src/maze/constants";
 import { colors } from "@/src/styles";
 import { Maze } from "./maze";
+import { CleanedCells } from "./cleaned-cells";
 
 const PLAYER_COLOR = colors.main;
 const EXIT_SIZE = PLAYER_RADIUS * 2;
@@ -19,6 +27,7 @@ const EXIT_COLOR = colors.main;
 const GameScreen: React.FC = () => {
   const { playerX, playerY } = usePlayer();
   const mazeData = useMaze();
+  const visitedCells = useVisitedCells();
   const { canvasSize, setCanvasSize } = useCanvasSize();
   const flashOpacity = useFlash();
   const { fogRadius, fogOpacity } = useFog();
@@ -46,6 +55,8 @@ const GameScreen: React.FC = () => {
     >
       {canvasSize.width > 0 && canvasSize.height > 0 && mazeData && (
         <Canvas style={StyleSheet.absoluteFill}>
+          {/* Cleaned cells overlay (rendered behind everything) */}
+          <CleanedCells visitedCells={visitedCells} mazeData={mazeData} />
           {/* Exit marker (rendered behind player) */}
           <Rect
             x={mazeData.exit.x - EXIT_SIZE / 2}

@@ -256,5 +256,7 @@ export function generateMaze(
     cols: safeCols,
     rows: safeRows,
     cellSize,
+    offsetX,
+    offsetY,
   };
 }

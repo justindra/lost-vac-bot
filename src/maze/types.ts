@@ -23,4 +23,6 @@ export type MazeData = {
   cols: number;
   rows: number;
   cellSize: number;
+  offsetX: number;
+  offsetY: number;
 };

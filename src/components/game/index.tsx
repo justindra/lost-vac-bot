@@ -5,6 +5,7 @@ import {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useAudioPlayer } from "expo-audio";
 import { GameContext } from "./context";
 import { generateMaze } from "@/src/maze/generate";
@@ -58,6 +59,17 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const [gameOver, setGameOver] = useState(false);
   const [level, setLevel] = useState(1);
 
+  // Coverage tracking: cells visited in current maze and cumulative score
+  const [visitedCells, setVisitedCells] = useState<Set<number>>(new Set());
+  const [score, setScore] = useState(0);
+  // Shared values for worklet access to maze grid info
+  const mazeOffsetX = useSharedValue(0);
+  const mazeOffsetY = useSharedValue(0);
+  const mazeCols = useSharedValue(0);
+  const mazeCellSize = useSharedValue(0);
+  // Track last visited cell index to avoid redundant callbacks
+  const lastCellIndex = useSharedValue(-1);
+
   // Audio players
   const countdownPlayer = useAudioPlayer(countdownSound);
   const gameOverPlayer = useAudioPlayer(gameOverSound);
@@ -70,6 +82,17 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
 
   // Track the last exit location so the next maze starts there
   const lastExitLocation = useRef<MazeLocation | undefined>(undefined);
+
+  // Callback to mark a cell as visited (called from worklet via scheduleOnRN)
+  const markCellVisited = useCallback((cellIndex: number) => {
+    setVisitedCells((prev) => {
+      if (prev.has(cellIndex)) return prev;
+      const next = new Set(prev);
+      next.add(cellIndex);
+      setScore((s) => s + 1);
+      return next;
+    });
+  }, []);
 
   // Start the countdown sequence: show full map, animate fog closed, block movement
   const startCountdown = useCallback(() => {
@@ -122,10 +145,18 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     wallCount.value = maze.wallCount;
     exitX.value = maze.exit.x;
     exitY.value = maze.exit.y;
+    mazeOffsetX.value = maze.offsetX;
+    mazeOffsetY.value = maze.offsetY;
+    mazeCols.value = maze.cols;
+    mazeCellSize.value = maze.cellSize;
+    lastCellIndex.value = -1;
 
     // Reset player to new start
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
+
+    // Reset visited cells for new maze
+    setVisitedCells(new Set());
 
     // Increment level counter
     setLevel((l) => l + 1);
@@ -140,6 +171,11 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     wallCount,
     exitX,
     exitY,
+    mazeOffsetX,
+    mazeOffsetY,
+    mazeCols,
+    mazeCellSize,
+    lastCellIndex,
     playerX,
     playerY,
     levelUpPlayer,
@@ -164,6 +200,11 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       wallCount.value = maze.wallCount;
       exitX.value = maze.exit.x;
       exitY.value = maze.exit.y;
+      mazeOffsetX.value = maze.offsetX;
+      mazeOffsetY.value = maze.offsetY;
+      mazeCols.value = maze.cols;
+      mazeCellSize.value = maze.cellSize;
+      lastCellIndex.value = -1;
 
       // Set player start position
       playerX.value = maze.start.x;
@@ -172,7 +213,20 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       // Start countdown on first level
       startCountdown();
     },
-    [wallsFlat, wallCount, exitX, exitY, playerX, playerY, startCountdown],
+    [
+      wallsFlat,
+      wallCount,
+      exitX,
+      exitY,
+      mazeOffsetX,
+      mazeOffsetY,
+      mazeCols,
+      mazeCellSize,
+      lastCellIndex,
+      playerX,
+      playerY,
+      startCountdown,
+    ],
   );
 
   const handleGameOver = useCallback(() => {
@@ -185,6 +239,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const restartGame = useCallback(() => {
     setGameOver(false);
     setLevel(1);
+    setScore(0);
+    setVisitedCells(new Set());
     battery.value = STARTING_BATTERY;
     fogRadius.value = FOG_INITIAL_RADIUS;
     lastExitLocation.current = undefined;
@@ -201,6 +257,11 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     wallCount.value = maze.wallCount;
     exitX.value = maze.exit.x;
     exitY.value = maze.exit.y;
+    mazeOffsetX.value = maze.offsetX;
+    mazeOffsetY.value = maze.offsetY;
+    mazeCols.value = maze.cols;
+    mazeCellSize.value = maze.cellSize;
+    lastCellIndex.value = -1;
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
 
@@ -214,6 +275,11 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     wallCount,
     exitX,
     exitY,
+    mazeOffsetX,
+    mazeOffsetY,
+    mazeCols,
+    mazeCellSize,
+    lastCellIndex,
     playerX,
     playerY,
     startCountdown,
@@ -242,6 +308,23 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
 
     playerX.value = resolved[0];
     playerY.value = resolved[1];
+
+    // Track cell coverage
+    if (mazeCellSize.value > 0) {
+      const col = Math.floor(
+        (playerX.value - mazeOffsetX.value) / mazeCellSize.value,
+      );
+      const row = Math.floor(
+        (playerY.value - mazeOffsetY.value) / mazeCellSize.value,
+      );
+      if (col >= 0 && col < mazeCols.value && row >= 0) {
+        const cellIndex = row * mazeCols.value + col;
+        if (cellIndex !== lastCellIndex.value) {
+          lastCellIndex.value = cellIndex;
+          scheduleOnRN(markCellVisited, cellIndex);
+        }
+      }
+    }
 
     // Drain battery and derive fog radius
     battery.value = Math.max(
@@ -286,6 +369,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       gameOver,
       restartGame,
       level,
+      score,
+      visitedCells,
       countdownActive,
     }),
     [
@@ -303,6 +388,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       gameOver,
       restartGame,
       level,
+      score,
+      visitedCells,
       countdownActive,
     ],
   );

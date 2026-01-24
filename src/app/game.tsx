@@ -54,17 +54,17 @@ function BatteryIndicator() {
 }
 
 export default function GameScreen() {
-  const { gameOver, level, restartGame } = useGameOver();
+  const { gameOver, level, score, restartGame } = useGameOver();
   const router = useRouter();
 
   useEffect(() => {
     if (gameOver) {
       router.push({
         pathname: "/game-over" as any,
-        params: { level: String(level) },
+        params: { score: String(score) },
       });
     }
-  }, [gameOver, level, router]);
+  }, [gameOver, score, router]);
 
   return (
     <View
@@ -94,7 +94,7 @@ export default function GameScreen() {
               fontFamily: fonts.main,
             }}
           >
-            Score: {level - 1}
+            Score: {score}
           </Text>
         </View>
         <Pressable
