@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Text, View, Pressable } from "react-native";
+import { Text, View } from "react-native";
 import { useAnimatedReaction } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { Joystick } from "../components/joystick";
@@ -10,6 +10,7 @@ import { colors, fonts, spacing } from "../styles";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { scheduleOnRN } from "react-native-worklets";
 import { STARTING_BATTERY } from "../maze/constants";
+import { Button } from "../components/button";
 
 type BatteryIconName =
   | "battery-full"
@@ -38,7 +39,13 @@ function BatteryIndicator() {
   );
 
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: spacing.md,
+      }}
+    >
       <FontAwesome
         name={getBatteryIcon(displayLevel)}
         size={24}
@@ -54,7 +61,7 @@ function BatteryIndicator() {
 }
 
 export default function GameScreen() {
-  const { gameOver, level, score, restartGame } = useGameOver();
+  const { gameOver, score, restartGame } = useGameOver();
   const router = useRouter();
 
   useEffect(() => {
@@ -80,12 +87,12 @@ export default function GameScreen() {
         style={{
           flex: 1,
           alignItems: "center",
-          paddingVertical: spacing.md * 3,
+          paddingVertical: spacing.xl,
           paddingLeft: spacing.md,
           justifyContent: "space-between",
         }}
       >
-        <View style={{ alignItems: "center", gap: 8 }}>
+        <View style={{ alignItems: "center", gap: spacing.lg }}>
           <BatteryIndicator />
           <Text
             style={{
@@ -97,26 +104,7 @@ export default function GameScreen() {
             Score: {score}
           </Text>
         </View>
-        <Pressable
-          onPress={restartGame}
-          style={({ pressed }) => ({
-            borderWidth: 1,
-            borderColor: colors.main,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            opacity: pressed ? 0.6 : 1,
-          })}
-        >
-          <Text
-            style={{
-              color: colors.main,
-              fontSize: 12,
-              fontFamily: fonts.main,
-            }}
-          >
-            RESTART
-          </Text>
-        </Pressable>
+        <Button onPress={restartGame} label="RESTART" size="sm" />
       </View>
       {/* Game Screen */}
       <View style={{ flex: 3, padding: spacing.md }}>

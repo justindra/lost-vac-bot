@@ -20,6 +20,7 @@ type GameContextType = {
   score: number;
   visitedCells: Set<number>;
   countdownActive: boolean;
+  powerUpsCollected: boolean[];
 };
 
 export const GameContext = createContext<GameContextType | null>(null);

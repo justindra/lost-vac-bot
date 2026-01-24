@@ -12,3 +12,9 @@ export const FOG_MIN_RADIUS = PLAYER_RADIUS * 2; // 20px — always see immediat
 // Battery
 export const STARTING_BATTERY = 100; // percent
 export const BATTERY_DRAIN_RATE = 1; // percent per second (100s total life)
+
+// Battery power-up
+export const BATTERY_POWERUP_VALUE = 20; // percent restored per pickup
+export const BATTERY_POWERUP_MIN_LEVEL = 3; // first level batteries appear
+export const BATTERY_LOW_THRESHOLD = 15; // below this %, spawn 2 batteries
+export const BATTERY_POWERUP_RADIUS = 8; // pickup detection radius (px)

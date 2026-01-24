@@ -5,6 +5,11 @@ export type Wall = {
   y2: number;
 };
 
+export type PowerUp = {
+  x: number;
+  y: number;
+};
+
 export type MazeLocation =
   | "top-left"
   | "top-right"
@@ -25,4 +30,5 @@ export type MazeData = {
   cellSize: number;
   offsetX: number;
   offsetY: number;
+  powerUps: PowerUp[];
 };

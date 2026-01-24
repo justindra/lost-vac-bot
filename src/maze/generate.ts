@@ -1,5 +1,5 @@
 import { CELL_SIZE } from "./constants";
-import type { MazeData, MazeLocation, Wall } from "./types";
+import type { MazeData, MazeLocation, PowerUp, Wall } from "./types";
 
 const ALL_LOCATIONS: MazeLocation[] = [
   "top-left",
@@ -188,14 +188,84 @@ function flattenWalls(walls: Wall[]): number[] {
 }
 
 /**
+ * Find dead-end cells in the grid (cells with only 1 open passage).
+ * A dead-end has exactly 3 walls remaining (only 1 wall flag removed).
+ */
+function findDeadEnds(
+  grid: number[][],
+  cols: number,
+  rows: number,
+): [number, number][] {
+  const deadEnds: [number, number][] = [];
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const cell = grid[row][col];
+      // Count how many walls are still present (bits set)
+      let wallCount = 0;
+      if (cell & N) wallCount++;
+      if (cell & S) wallCount++;
+      if (cell & E) wallCount++;
+      if (cell & W) wallCount++;
+      // Dead-end: 3 walls present means only 1 opening
+      if (wallCount === 3) {
+        deadEnds.push([col, row]);
+      }
+    }
+  }
+  return deadEnds;
+}
+
+/**
+ * Place battery power-ups in dead-end cells of the maze.
+ * Excludes the start and exit cells.
+ */
+function placePowerUps(
+  grid: number[][],
+  cols: number,
+  rows: number,
+  cellSize: number,
+  offsetX: number,
+  offsetY: number,
+  startCol: number,
+  startRow: number,
+  exitCol: number,
+  exitRow: number,
+  count: number,
+): PowerUp[] {
+  if (count <= 0) return [];
+
+  const deadEnds = findDeadEnds(grid, cols, rows);
+
+  // Exclude start and exit cells
+  const candidates = deadEnds.filter(
+    ([col, row]) =>
+      !(col === startCol && row === startRow) &&
+      !(col === exitCol && row === exitRow),
+  );
+
+  if (candidates.length === 0) return [];
+
+  // Shuffle and pick up to `count` candidates
+  const shuffled = candidates.sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, Math.min(count, shuffled.length));
+
+  return selected.map(([col, row]) => ({
+    x: offsetX + col * cellSize + cellSize / 2,
+    y: offsetY + row * cellSize + cellSize / 2,
+  }));
+}
+
+/**
  * Generate a complete maze that fits within the given canvas dimensions.
  * @param startLocation - Which location the player starts at (defaults to "center").
  *   The exit is randomly chosen from the remaining 4 locations.
+ * @param powerUpCount - Number of battery power-ups to place (0 = none).
  */
 export function generateMaze(
   canvasWidth: number,
   canvasHeight: number,
   startLocation: MazeLocation = "center",
+  powerUpCount: number = 0,
 ): MazeData {
   const cellSize = CELL_SIZE;
   const cols = Math.floor(canvasWidth / cellSize);
@@ -245,6 +315,21 @@ export function generateMaze(
     y: offsetY + exitRow * cellSize + cellSize / 2,
   };
 
+  // Place battery power-ups in dead-end cells
+  const powerUps = placePowerUps(
+    grid,
+    safeCols,
+    safeRows,
+    cellSize,
+    offsetX,
+    offsetY,
+    startCol,
+    startRow,
+    exitCol,
+    exitRow,
+    powerUpCount,
+  );
+
   return {
     walls,
     wallsFlat,
@@ -258,5 +343,6 @@ export function generateMaze(
     cellSize,
     offsetX,
     offsetY,
+    powerUps,
   };
 }

@@ -63,3 +63,8 @@ export const useCountdown = () => {
   const { countdownActive } = useGame();
   return countdownActive;
 };
+
+export const usePowerUps = () => {
+  const { mazeData, powerUpsCollected } = useGame();
+  return { powerUps: mazeData?.powerUps ?? [], powerUpsCollected };
+};

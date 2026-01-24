@@ -5,6 +5,7 @@ import {
   Rect,
   vec,
   RadialGradient,
+  Group,
 } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
 import {
@@ -14,6 +15,7 @@ import {
   useFlash,
   useFog,
   useVisitedCells,
+  usePowerUps,
 } from "../game";
 import { PLAYER_RADIUS } from "@/src/maze/constants";
 import { colors } from "@/src/styles";
@@ -24,6 +26,12 @@ const PLAYER_COLOR = colors.main;
 const EXIT_SIZE = PLAYER_RADIUS * 2;
 const EXIT_COLOR = colors.main;
 
+// Battery power-up dimensions
+const BATTERY_WIDTH = 12;
+const BATTERY_HEIGHT = 18;
+const BATTERY_TERMINAL_WIDTH = 6;
+const BATTERY_TERMINAL_HEIGHT = 3;
+
 const GameScreen: React.FC = () => {
   const { playerX, playerY } = usePlayer();
   const mazeData = useMaze();
@@ -31,6 +39,7 @@ const GameScreen: React.FC = () => {
   const { canvasSize, setCanvasSize } = useCanvasSize();
   const flashOpacity = useFlash();
   const { fogRadius, fogOpacity } = useFog();
+  const { powerUps, powerUpsCollected } = usePowerUps();
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -65,6 +74,29 @@ const GameScreen: React.FC = () => {
             height={EXIT_SIZE}
             color={EXIT_COLOR}
           />
+          {/* Battery power-ups */}
+          {powerUps.map((pu, i) =>
+            !powerUpsCollected[i] ? (
+              <Group key={i}>
+                {/* Battery body */}
+                <Rect
+                  x={pu.x - BATTERY_WIDTH / 2}
+                  y={pu.y - BATTERY_HEIGHT / 2 + BATTERY_TERMINAL_HEIGHT / 2}
+                  width={BATTERY_WIDTH}
+                  height={BATTERY_HEIGHT}
+                  color={colors.main}
+                />
+                {/* Battery terminal (top nub) */}
+                <Rect
+                  x={pu.x - BATTERY_TERMINAL_WIDTH / 2}
+                  y={pu.y - BATTERY_HEIGHT / 2 - BATTERY_TERMINAL_HEIGHT / 2}
+                  width={BATTERY_TERMINAL_WIDTH}
+                  height={BATTERY_TERMINAL_HEIGHT}
+                  color={colors.main}
+                />
+              </Group>
+            ) : null,
+          )}
           {/* Maze walls */}
           <Maze walls={mazeData.walls} />
           {/* Player */}

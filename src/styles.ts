@@ -9,4 +9,6 @@ export const fonts = {
 
 export const spacing = {
   md: 8,
+  lg: 16,
+  xl: 24,
 };

@@ -4,26 +4,27 @@ import { colors, fonts } from "../styles";
 interface ButtonProps {
   label: string;
   onPress: () => void;
+  size?: "sm" | "md";
 }
 
-export function Button({ label, onPress }: ButtonProps) {
+export function Button({ label, onPress, size = "md" }: ButtonProps) {
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
         borderWidth: 2,
         borderColor: colors.main,
-        paddingHorizontal: 24,
-        paddingVertical: 12,
+        paddingHorizontal: size === "sm" ? 12 : 24,
+        paddingVertical: size === "sm" ? 8 : 12,
         opacity: pressed ? 0.6 : 1,
       })}
     >
       <Text
         style={{
           color: colors.main,
-          fontSize: 24,
+          fontSize: size === "sm" ? 12 : 24,
           fontFamily: fonts.main,
-          fontWeight: "bold",
+          fontWeight: size === "sm" ? "normal" : "bold",
         }}
       >
         {label}

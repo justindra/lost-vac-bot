@@ -16,6 +16,10 @@ import {
   FOG_MIN_RADIUS,
   BATTERY_DRAIN_RATE,
   STARTING_BATTERY,
+  BATTERY_POWERUP_VALUE,
+  BATTERY_POWERUP_MIN_LEVEL,
+  BATTERY_LOW_THRESHOLD,
+  BATTERY_POWERUP_RADIUS,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
@@ -28,6 +32,7 @@ const COUNTDOWN_DURATION = 3000; // ms — matches countdown-start.mp3 length
 const countdownSound = require("@/assets/sounds/countdown-start.mp3");
 const gameOverSound = require("@/assets/sounds/game-over.mp3");
 const levelUpSound = require("@/assets/sounds/level-up.mp3");
+const powerUpSound = require("@/assets/sounds/power-up.mp3");
 
 export const GameProvider: React.FC<React.PropsWithChildren> = ({
   children,
@@ -74,8 +79,16 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const countdownPlayer = useAudioPlayer(countdownSound);
   const gameOverPlayer = useAudioPlayer(gameOverSound);
   const levelUpPlayer = useAudioPlayer(levelUpSound);
+  const powerUpPlayer = useAudioPlayer(powerUpSound);
 
   const [countdownActive, setCountdownActive] = useState(false);
+
+  // Power-up state
+  const [powerUpsCollected, setPowerUpsCollected] = useState<boolean[]>([]);
+  // Shared values for worklet: flat array [x1, y1, x2, y2, ...] and collected flags
+  const powerUpsFlat = useSharedValue<number[]>([]);
+  const powerUpsCount = useSharedValue(0);
+  const powerUpsCollectedSV = useSharedValue<boolean[]>([]);
 
   // Store canvas size in a ref so regenerateMaze always has the latest
   const canvasSizeRef = useRef({ width: 0, height: 0 });
@@ -93,6 +106,30 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       return next;
     });
   }, []);
+
+  // Callback when a power-up is collected (called from worklet via runOnJS)
+  const collectPowerUp = useCallback(
+    (index: number) => {
+      setPowerUpsCollected((prev) => {
+        if (prev[index]) return prev;
+        const next = [...prev];
+        next[index] = true;
+        return next;
+      });
+      powerUpPlayer.seekTo(0);
+      powerUpPlayer.play();
+    },
+    [powerUpPlayer],
+  );
+
+  // Determine how many power-ups to place based on level and battery
+  const getPowerUpCount = useCallback(
+    (currentLevel: number, currentBattery: number) => {
+      if (currentLevel < BATTERY_POWERUP_MIN_LEVEL) return 0;
+      return currentBattery < BATTERY_LOW_THRESHOLD ? 2 : 1;
+    },
+    [],
+  );
 
   // Start the countdown sequence: show full map, animate fog closed, block movement
   const startCountdown = useCallback(() => {
@@ -135,8 +172,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     flashOpacity.value = 1;
     flashOpacity.value = withTiming(0, { duration: FLASH_DURATION });
 
+    // Determine power-up count for the next level
+    const nextLevel = level + 1;
+    const puCount = getPowerUpCount(nextLevel, battery.value);
+
     // Generate new maze, starting where the previous exit was
-    const maze = generateMaze(width, height, lastExitLocation.current);
+    const maze = generateMaze(width, height, lastExitLocation.current, puCount);
     setMazeData(maze);
     lastExitLocation.current = maze.exitLocation;
 
@@ -150,6 +191,16 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     mazeCols.value = maze.cols;
     mazeCellSize.value = maze.cellSize;
     lastCellIndex.value = -1;
+
+    // Set up power-up shared values for worklet
+    const puFlat: number[] = [];
+    for (const pu of maze.powerUps) {
+      puFlat.push(pu.x, pu.y);
+    }
+    powerUpsFlat.value = puFlat;
+    powerUpsCount.value = maze.powerUps.length;
+    powerUpsCollectedSV.value = maze.powerUps.map(() => false);
+    setPowerUpsCollected(maze.powerUps.map(() => false));
 
     // Reset player to new start
     playerX.value = maze.start.x;
@@ -180,6 +231,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerY,
     levelUpPlayer,
     startCountdown,
+    level,
+    battery,
+    getPowerUpCount,
+    powerUpsFlat,
+    powerUpsCount,
+    powerUpsCollectedSV,
   ]);
 
   const setCanvasSize = useCallback(
@@ -191,7 +248,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       setCanvasSizeState(size);
       canvasSizeRef.current = size;
 
-      const maze = generateMaze(size.width, size.height);
+      // Level 1: no power-ups (min level is 3)
+      const maze = generateMaze(size.width, size.height, "center", 0);
       setMazeData(maze);
       lastExitLocation.current = maze.exitLocation;
 
@@ -205,6 +263,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       mazeCols.value = maze.cols;
       mazeCellSize.value = maze.cellSize;
       lastCellIndex.value = -1;
+
+      // No power-ups on level 1
+      powerUpsFlat.value = [];
+      powerUpsCount.value = 0;
+      powerUpsCollectedSV.value = [];
+      setPowerUpsCollected([]);
 
       // Set player start position
       playerX.value = maze.start.x;
@@ -226,6 +290,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       playerX,
       playerY,
       startCountdown,
+      powerUpsFlat,
+      powerUpsCount,
+      powerUpsCollectedSV,
     ],
   );
 
@@ -249,7 +316,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     const { width, height } = canvasSizeRef.current;
     if (width === 0 || height === 0) return;
 
-    const maze = generateMaze(width, height);
+    // Level 1 restart: no power-ups
+    const maze = generateMaze(width, height, "center", 0);
     setMazeData(maze);
     lastExitLocation.current = maze.exitLocation;
 
@@ -264,6 +332,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     lastCellIndex.value = -1;
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
+
+    // Reset power-ups
+    powerUpsFlat.value = [];
+    powerUpsCount.value = 0;
+    powerUpsCollectedSV.value = [];
+    setPowerUpsCollected([]);
 
     // Start countdown on the fresh maze
     startCountdown();
@@ -283,6 +357,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX,
     playerY,
     startCountdown,
+    powerUpsFlat,
+    powerUpsCount,
+    powerUpsCollectedSV,
   ]);
 
   useFrameCallback((frameInfo) => {
@@ -322,6 +399,27 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
         if (cellIndex !== lastCellIndex.value) {
           lastCellIndex.value = cellIndex;
           scheduleOnRN(markCellVisited, cellIndex);
+        }
+      }
+    }
+
+    // Check for power-up pickups
+    for (let i = 0; i < powerUpsCount.value; i++) {
+      if (!powerUpsCollectedSV.value[i]) {
+        const puX = powerUpsFlat.value[i * 2];
+        const puY = powerUpsFlat.value[i * 2 + 1];
+        const pdx = playerX.value - puX;
+        const pdy = playerY.value - puY;
+        const pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+        if (pDist < BATTERY_POWERUP_RADIUS + PLAYER_RADIUS) {
+          // Mark as collected in shared value (for worklet)
+          const newCollected = [...powerUpsCollectedSV.value];
+          newCollected[i] = true;
+          powerUpsCollectedSV.value = newCollected;
+          // Add battery (capped at 100)
+          battery.value = Math.min(100, battery.value + BATTERY_POWERUP_VALUE);
+          // Notify JS thread for state update and sound
+          runOnJS(collectPowerUp)(i);
         }
       }
     }
@@ -372,6 +470,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       score,
       visitedCells,
       countdownActive,
+      powerUpsCollected,
     }),
     [
       joystickX,
@@ -391,6 +490,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       score,
       visitedCells,
       countdownActive,
+      powerUpsCollected,
     ],
   );
 
