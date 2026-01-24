@@ -8,4 +8,6 @@ export const WALL_COLOR = colors.main;
 // Fog of war
 export const FOG_INITIAL_RADIUS = 400;
 export const FOG_MIN_RADIUS = PLAYER_RADIUS * 2; // 20px — always see immediate surroundings
-export const FOG_SHRINK_RATE = 2; // px per second
+
+// Battery
+export const BATTERY_DRAIN_RATE = 1; // percent per second (100s total life)

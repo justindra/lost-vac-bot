@@ -12,7 +12,7 @@ import {
   PLAYER_RADIUS,
   FOG_INITIAL_RADIUS,
   FOG_MIN_RADIUS,
-  FOG_SHRINK_RATE,
+  BATTERY_DRAIN_RATE,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
@@ -43,9 +43,11 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const transitioning = useSharedValue(false);
   const flashOpacity = useSharedValue(0);
 
-  // Fog of war state
+  // Battery & fog of war state
+  const battery = useSharedValue(100);
   const fogRadius = useSharedValue(FOG_INITIAL_RADIUS);
-  const levelElapsed = useSharedValue(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [level, setLevel] = useState(1);
 
   // Store canvas size in a ref so regenerateMaze always has the latest
   const canvasSizeRef = useRef({ width: 0, height: 0 });
@@ -76,9 +78,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
 
-    // Reset fog of war
-    levelElapsed.value = 0;
-    fogRadius.value = FOG_INITIAL_RADIUS;
+    // Increment level counter
+    setLevel((l) => l + 1);
 
     // Allow exit detection again after flash completes
     setTimeout(() => {
@@ -93,8 +94,6 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX,
     playerY,
     transitioning,
-    levelElapsed,
-    fogRadius,
   ]);
 
   const setCanvasSize = useCallback(
@@ -123,6 +122,43 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     [wallsFlat, wallCount, exitX, exitY, playerX, playerY],
   );
 
+  const handleGameOver = useCallback(() => {
+    setGameOver(true);
+  }, []);
+
+  const restartGame = useCallback(() => {
+    setGameOver(false);
+    setLevel(1);
+    battery.value = 100;
+    fogRadius.value = FOG_INITIAL_RADIUS;
+    lastExitLocation.current = undefined;
+    transitioning.value = false;
+
+    const { width, height } = canvasSizeRef.current;
+    if (width === 0 || height === 0) return;
+
+    const maze = generateMaze(width, height);
+    setMazeData(maze);
+    lastExitLocation.current = maze.exitLocation;
+
+    wallsFlat.value = maze.wallsFlat;
+    wallCount.value = maze.wallCount;
+    exitX.value = maze.exit.x;
+    exitY.value = maze.exit.y;
+    playerX.value = maze.start.x;
+    playerY.value = maze.start.y;
+  }, [
+    battery,
+    fogRadius,
+    transitioning,
+    wallsFlat,
+    wallCount,
+    exitX,
+    exitY,
+    playerX,
+    playerY,
+  ]);
+
   useFrameCallback((frameInfo) => {
     "worklet";
     const dt = frameInfo.timeSincePreviousFrame ?? 16.67;
@@ -147,12 +183,21 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX.value = resolved[0];
     playerY.value = resolved[1];
 
-    // Shrink fog of war over time
-    levelElapsed.value += dt;
-    fogRadius.value = Math.max(
-      FOG_MIN_RADIUS,
-      FOG_INITIAL_RADIUS - FOG_SHRINK_RATE * (levelElapsed.value / 1000),
+    // Drain battery and derive fog radius
+    battery.value = Math.max(
+      0,
+      battery.value - BATTERY_DRAIN_RATE * (dt / 1000),
     );
+    fogRadius.value =
+      FOG_MIN_RADIUS +
+      (FOG_INITIAL_RADIUS - FOG_MIN_RADIUS) * (battery.value / 100);
+
+    // Check for game over (battery depleted)
+    if (battery.value <= 0) {
+      transitioning.value = true;
+      runOnJS(handleGameOver)();
+      return;
+    }
 
     // Check if player reached the exit
     const dx = playerX.value - exitX.value;
@@ -176,6 +221,10 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       setCanvasSize,
       flashOpacity,
       fogRadius,
+      battery,
+      gameOver,
+      restartGame,
+      level,
     }),
     [
       joystickX,
@@ -187,6 +236,10 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       setCanvasSize,
       flashOpacity,
       fogRadius,
+      battery,
+      gameOver,
+      restartGame,
+      level,
     ],
   );
 

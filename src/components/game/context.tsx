@@ -12,6 +12,10 @@ type GameContextType = {
   setCanvasSize: (size: { width: number; height: number }) => void;
   flashOpacity: SharedValue<number>;
   fogRadius: SharedValue<number>;
+  battery: SharedValue<number>;
+  gameOver: boolean;
+  restartGame: () => void;
+  level: number;
 };
 
 export const GameContext = createContext<GameContextType | null>(null);

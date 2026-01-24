@@ -38,3 +38,13 @@ export const useFog = () => {
   const { fogRadius } = useGame();
   return fogRadius;
 };
+
+export const useBattery = () => {
+  const { battery } = useGame();
+  return battery;
+};
+
+export const useGameOver = () => {
+  const { gameOver, restartGame, level } = useGame();
+  return { gameOver, restartGame, level };
+};
