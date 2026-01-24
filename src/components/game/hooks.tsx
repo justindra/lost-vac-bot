@@ -18,3 +18,13 @@ export const usePlayer = () => {
   const { playerX, playerY } = useGame();
   return { playerX, playerY };
 };
+
+export const useMaze = () => {
+  const { mazeData } = useGame();
+  return mazeData;
+};
+
+export const useCanvasSize = () => {
+  const { canvasSize, setCanvasSize } = useGame();
+  return { canvasSize, setCanvasSize };
+};

@@ -1,38 +1,50 @@
-import { useState } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
-import { Canvas, Circle } from "@shopify/react-native-skia";
+import { Canvas, Circle, Rect } from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
-import { usePlayer } from "../game";
+import { usePlayer, useMaze, useCanvasSize } from "../game";
+import { PLAYER_RADIUS } from "@/src/maze/constants";
 import { colors } from "@/src/styles";
+import { Maze } from "./maze";
 
-const PLAYER_RADIUS = 10;
 const PLAYER_COLOR = colors.main;
+const EXIT_SIZE = PLAYER_RADIUS * 2;
+const EXIT_COLOR = colors.main;
 
 const GameScreen: React.FC = () => {
   const { playerX, playerY } = usePlayer();
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const mazeData = useMaze();
+  const { canvasSize, setCanvasSize } = useCanvasSize();
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
     setCanvasSize({ width, height });
   };
 
-  const cx = useDerivedValue(() => canvasSize.width / 2 + playerX.value);
-  const cy = useDerivedValue(() => canvasSize.height / 2 + playerY.value);
+  const cx = useDerivedValue(() => playerX.value);
+  const cy = useDerivedValue(() => playerY.value);
 
   return (
     <View
       style={{
         flex: 1,
-        borderColor: colors.main,
-        borderWidth: 1,
         width: "100%",
         height: "100%",
       }}
       onLayout={handleLayout}
     >
-      {canvasSize.width > 0 && canvasSize.height > 0 && (
+      {canvasSize.width > 0 && canvasSize.height > 0 && mazeData && (
         <Canvas style={StyleSheet.absoluteFill}>
+          {/* Exit marker (rendered behind player) */}
+          <Rect
+            x={mazeData.exit.x - EXIT_SIZE / 2}
+            y={mazeData.exit.y - EXIT_SIZE / 2}
+            width={EXIT_SIZE}
+            height={EXIT_SIZE}
+            color={EXIT_COLOR}
+          />
+          {/* Maze walls */}
+          <Maze walls={mazeData.walls} />
+          {/* Player */}
           <Circle cx={cx} cy={cy} r={PLAYER_RADIUS} color={PLAYER_COLOR} />
         </Canvas>
       )}
