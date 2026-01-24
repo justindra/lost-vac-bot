@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Text, View, Pressable } from "react-native";
-import { useAnimatedReaction, runOnJS } from "react-native-reanimated";
+import { useAnimatedReaction } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { Joystick } from "../components/joystick";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -8,6 +8,8 @@ import { useBattery, useGameOver } from "../components/game";
 import { GameScreenLoader as GameScreen } from "../components/game-screen";
 import { colors, spacing } from "../styles";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { scheduleOnRN } from "react-native-worklets";
+import { STARTING_BATTERY } from "../maze/constants";
 
 type BatteryIconName =
   | "battery-full"
@@ -26,12 +28,12 @@ function getBatteryIcon(level: number): BatteryIconName {
 
 function BatteryIndicator() {
   const battery = useBattery();
-  const [displayLevel, setDisplayLevel] = useState(100);
+  const [displayLevel, setDisplayLevel] = useState(STARTING_BATTERY);
 
   useAnimatedReaction(
     () => Math.round(battery.value),
     (current) => {
-      runOnJS(setDisplayLevel)(current);
+      scheduleOnRN(setDisplayLevel, current);
     },
   );
 

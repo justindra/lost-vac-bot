@@ -21,7 +21,7 @@ const GameScreen: React.FC = () => {
   const mazeData = useMaze();
   const { canvasSize, setCanvasSize } = useCanvasSize();
   const flashOpacity = useFlash();
-  const fogRadius = useFog();
+  const { fogRadius, fogOpacity } = useFog();
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -33,6 +33,7 @@ const GameScreen: React.FC = () => {
   const flashAlpha = useDerivedValue(() => flashOpacity.value);
   const fogCenter = useDerivedValue(() => vec(playerX.value, playerY.value));
   const fogR = useDerivedValue(() => fogRadius.value);
+  const fogAlpha = useDerivedValue(() => fogOpacity.value);
 
   return (
     <View
@@ -58,7 +59,13 @@ const GameScreen: React.FC = () => {
           {/* Player */}
           <Circle cx={cx} cy={cy} r={PLAYER_RADIUS} color={PLAYER_COLOR} />
           {/* Fog of war overlay */}
-          <Rect x={0} y={0} width={canvasSize.width} height={canvasSize.height}>
+          <Rect
+            x={0}
+            y={0}
+            width={canvasSize.width}
+            height={canvasSize.height}
+            opacity={fogAlpha}
+          >
             <RadialGradient
               c={fogCenter}
               r={fogR}

@@ -35,8 +35,8 @@ export const useFlash = () => {
 };
 
 export const useFog = () => {
-  const { fogRadius } = useGame();
-  return fogRadius;
+  const { fogRadius, fogOpacity } = useGame();
+  return { fogRadius, fogOpacity };
 };
 
 export const useBattery = () => {
@@ -47,4 +47,9 @@ export const useBattery = () => {
 export const useGameOver = () => {
   const { gameOver, restartGame, level } = useGame();
   return { gameOver, restartGame, level };
+};
+
+export const useCountdown = () => {
+  const { countdownActive } = useGame();
+  return countdownActive;
 };

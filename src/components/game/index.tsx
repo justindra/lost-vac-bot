@@ -5,6 +5,7 @@ import {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import { useAudioPlayer } from "expo-audio";
 import { GameContext } from "./context";
 import { generateMaze } from "@/src/maze/generate";
 import { resolveCollisions } from "@/src/maze/collision";
@@ -13,12 +14,19 @@ import {
   FOG_INITIAL_RADIUS,
   FOG_MIN_RADIUS,
   BATTERY_DRAIN_RATE,
+  STARTING_BATTERY,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
 const SPEED = 3;
 const EXIT_THRESHOLD = PLAYER_RADIUS; // Distance to trigger exit
 const FLASH_DURATION = 400; // ms
+const COUNTDOWN_DURATION = 3000; // ms — matches countdown-start.mp3 length
+
+// Audio sources
+const countdownSound = require("@/assets/sounds/countdown-start.mp3");
+const gameOverSound = require("@/assets/sounds/game-over.mp3");
+const levelUpSound = require("@/assets/sounds/level-up.mp3");
 
 export const GameProvider: React.FC<React.PropsWithChildren> = ({
   children,
@@ -44,10 +52,18 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const flashOpacity = useSharedValue(0);
 
   // Battery & fog of war state
-  const battery = useSharedValue(100);
+  const battery = useSharedValue(STARTING_BATTERY);
   const fogRadius = useSharedValue(FOG_INITIAL_RADIUS);
+  const fogOpacity = useSharedValue(1);
   const [gameOver, setGameOver] = useState(false);
   const [level, setLevel] = useState(1);
+
+  // Audio players
+  const countdownPlayer = useAudioPlayer(countdownSound);
+  const gameOverPlayer = useAudioPlayer(gameOverSound);
+  const levelUpPlayer = useAudioPlayer(levelUpSound);
+
+  const [countdownActive, setCountdownActive] = useState(false);
 
   // Store canvas size in a ref so regenerateMaze always has the latest
   const canvasSizeRef = useRef({ width: 0, height: 0 });
@@ -55,9 +71,35 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   // Track the last exit location so the next maze starts there
   const lastExitLocation = useRef<MazeLocation | undefined>(undefined);
 
+  // Start the countdown sequence: show full map, animate fog closed, block movement
+  const startCountdown = useCallback(() => {
+    // Make fog overlay invisible (full map visible)
+    fogOpacity.value = 0;
+    // Block movement
+    transitioning.value = true;
+    setCountdownActive(true);
+
+    // Play countdown audio
+    countdownPlayer.seekTo(0);
+    countdownPlayer.play();
+
+    // Animate fog overlay opacity from 0 (invisible) to 1 (normal fog) over countdown duration
+    fogOpacity.value = withTiming(1, { duration: COUNTDOWN_DURATION });
+
+    // After countdown completes, unblock movement
+    setTimeout(() => {
+      transitioning.value = false;
+      setCountdownActive(false);
+    }, COUNTDOWN_DURATION);
+  }, [fogOpacity, transitioning, countdownPlayer]);
+
   const regenerateMaze = useCallback(() => {
     const { width, height } = canvasSizeRef.current;
     if (width === 0 || height === 0) return;
+
+    // Play level-up sound
+    levelUpPlayer.seekTo(0);
+    levelUpPlayer.play();
 
     // Trigger flash animation
     flashOpacity.value = 1;
@@ -81,9 +123,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     // Increment level counter
     setLevel((l) => l + 1);
 
-    // Allow exit detection again after flash completes
+    // After flash completes, start the countdown sequence
     setTimeout(() => {
-      transitioning.value = false;
+      startCountdown();
     }, FLASH_DURATION);
   }, [
     flashOpacity,
@@ -93,7 +135,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     exitY,
     playerX,
     playerY,
-    transitioning,
+    levelUpPlayer,
+    startCountdown,
   ]);
 
   const setCanvasSize = useCallback(
@@ -118,18 +161,24 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       // Set player start position
       playerX.value = maze.start.x;
       playerY.value = maze.start.y;
+
+      // Start countdown on first level
+      startCountdown();
     },
-    [wallsFlat, wallCount, exitX, exitY, playerX, playerY],
+    [wallsFlat, wallCount, exitX, exitY, playerX, playerY, startCountdown],
   );
 
   const handleGameOver = useCallback(() => {
+    // Play game-over sound, then trigger navigation when it completes
+    gameOverPlayer.seekTo(0);
+    gameOverPlayer.play();
     setGameOver(true);
-  }, []);
+  }, [gameOverPlayer]);
 
   const restartGame = useCallback(() => {
     setGameOver(false);
     setLevel(1);
-    battery.value = 100;
+    battery.value = STARTING_BATTERY;
     fogRadius.value = FOG_INITIAL_RADIUS;
     lastExitLocation.current = undefined;
     transitioning.value = false;
@@ -147,6 +196,9 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     exitY.value = maze.exit.y;
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
+
+    // Start countdown on the fresh maze
+    startCountdown();
   }, [
     battery,
     fogRadius,
@@ -157,6 +209,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     exitY,
     playerX,
     playerY,
+    startCountdown,
   ]);
 
   useFrameCallback((frameInfo) => {
@@ -221,10 +274,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       setCanvasSize,
       flashOpacity,
       fogRadius,
+      fogOpacity,
       battery,
       gameOver,
       restartGame,
       level,
+      countdownActive,
     }),
     [
       joystickX,
@@ -236,10 +291,12 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       setCanvasSize,
       flashOpacity,
       fogRadius,
+      fogOpacity,
       battery,
       gameOver,
       restartGame,
       level,
+      countdownActive,
     ],
   );
 

@@ -8,7 +8,9 @@ export default function RootLayout() {
         screenOptions={{
           headerShown: false,
         }}
-      />
+      >
+        <Stack.Screen name="game-over" options={{ animation: "fade" }} />
+      </Stack>
     </GameProvider>
   );
 }
