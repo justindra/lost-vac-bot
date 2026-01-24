@@ -6,13 +6,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "lost-roomba",
   slug: "lost-roomba",
   version,
-  orientation: "portrait",
+  orientation: "landscape",
   icon: "./assets/images/icon.png",
   scheme: "lostroomba",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {
-    supportsTablet: true,
+    supportsTablet: false,
   },
   android: {
     adaptiveIcon: {
