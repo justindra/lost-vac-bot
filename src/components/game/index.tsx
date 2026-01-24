@@ -8,7 +8,12 @@ import {
 import { GameContext } from "./context";
 import { generateMaze } from "@/src/maze/generate";
 import { resolveCollisions } from "@/src/maze/collision";
-import { PLAYER_RADIUS } from "@/src/maze/constants";
+import {
+  PLAYER_RADIUS,
+  FOG_INITIAL_RADIUS,
+  FOG_MIN_RADIUS,
+  FOG_SHRINK_RATE,
+} from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
 const SPEED = 3;
@@ -37,6 +42,10 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   // Transition state
   const transitioning = useSharedValue(false);
   const flashOpacity = useSharedValue(0);
+
+  // Fog of war state
+  const fogRadius = useSharedValue(FOG_INITIAL_RADIUS);
+  const levelElapsed = useSharedValue(0);
 
   // Store canvas size in a ref so regenerateMaze always has the latest
   const canvasSizeRef = useRef({ width: 0, height: 0 });
@@ -67,6 +76,10 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX.value = maze.start.x;
     playerY.value = maze.start.y;
 
+    // Reset fog of war
+    levelElapsed.value = 0;
+    fogRadius.value = FOG_INITIAL_RADIUS;
+
     // Allow exit detection again after flash completes
     setTimeout(() => {
       transitioning.value = false;
@@ -80,6 +93,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX,
     playerY,
     transitioning,
+    levelElapsed,
+    fogRadius,
   ]);
 
   const setCanvasSize = useCallback(
@@ -132,6 +147,13 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     playerX.value = resolved[0];
     playerY.value = resolved[1];
 
+    // Shrink fog of war over time
+    levelElapsed.value += dt;
+    fogRadius.value = Math.max(
+      FOG_MIN_RADIUS,
+      FOG_INITIAL_RADIUS - FOG_SHRINK_RATE * (levelElapsed.value / 1000),
+    );
+
     // Check if player reached the exit
     const dx = playerX.value - exitX.value;
     const dy = playerY.value - exitY.value;
@@ -153,6 +175,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       canvasSize,
       setCanvasSize,
       flashOpacity,
+      fogRadius,
     }),
     [
       joystickX,
@@ -163,6 +186,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       canvasSize,
       setCanvasSize,
       flashOpacity,
+      fogRadius,
     ],
   );
 

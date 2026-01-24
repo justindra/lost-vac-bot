@@ -3,7 +3,7 @@ import { Joystick } from "../components/joystick";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GameProvider } from "../components/game";
 import { GameScreenLoader as GameScreen } from "../components/game-screen";
-import { colors } from "../styles";
+import { colors, spacing } from "../styles";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 export default function Index() {
@@ -18,14 +18,16 @@ export default function Index() {
         }}
       >
         {/* Left Panel */}
-        <View style={{ flex: 1, alignItems: "center" }}>
-          {/* Battery Level */}
-
-          <Text style={{ color: colors.main }}>Battery Level</Text>
+        <View
+          style={{ flex: 1, alignItems: "center", paddingVertical: spacing.md }}
+        >
           <FontAwesome name="battery-full" size={32} color={colors.main} />
+          {/* High Score */}
+          <Text style={{ color: colors.main }}>High Score: 100</Text>
+          {/* Restart button */}
         </View>
         {/* Game Screen */}
-        <View style={{ flex: 3, padding: 10 }}>
+        <View style={{ flex: 3, padding: spacing.md }}>
           <GameScreen />
         </View>
         {/* Right Panel */}

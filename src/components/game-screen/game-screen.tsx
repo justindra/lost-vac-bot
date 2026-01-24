@@ -1,7 +1,13 @@
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
-import { Canvas, Circle, Rect } from "@shopify/react-native-skia";
+import {
+  Canvas,
+  Circle,
+  Rect,
+  vec,
+  RadialGradient,
+} from "@shopify/react-native-skia";
 import { useDerivedValue } from "react-native-reanimated";
-import { usePlayer, useMaze, useCanvasSize, useFlash } from "../game";
+import { usePlayer, useMaze, useCanvasSize, useFlash, useFog } from "../game";
 import { PLAYER_RADIUS } from "@/src/maze/constants";
 import { colors } from "@/src/styles";
 import { Maze } from "./maze";
@@ -15,6 +21,7 @@ const GameScreen: React.FC = () => {
   const mazeData = useMaze();
   const { canvasSize, setCanvasSize } = useCanvasSize();
   const flashOpacity = useFlash();
+  const fogRadius = useFog();
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
@@ -24,6 +31,8 @@ const GameScreen: React.FC = () => {
   const cx = useDerivedValue(() => playerX.value);
   const cy = useDerivedValue(() => playerY.value);
   const flashAlpha = useDerivedValue(() => flashOpacity.value);
+  const fogCenter = useDerivedValue(() => vec(playerX.value, playerY.value));
+  const fogR = useDerivedValue(() => fogRadius.value);
 
   return (
     <View
@@ -48,6 +57,15 @@ const GameScreen: React.FC = () => {
           <Maze walls={mazeData.walls} />
           {/* Player */}
           <Circle cx={cx} cy={cy} r={PLAYER_RADIUS} color={PLAYER_COLOR} />
+          {/* Fog of war overlay */}
+          <Rect x={0} y={0} width={canvasSize.width} height={canvasSize.height}>
+            <RadialGradient
+              c={fogCenter}
+              r={fogR}
+              colors={["transparent", "transparent", "black"]}
+              positions={[0, 0.7, 1]}
+            />
+          </Rect>
           {/* Flash overlay on level transition */}
           <Rect
             x={0}

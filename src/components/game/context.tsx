@@ -11,6 +11,7 @@ type GameContextType = {
   canvasSize: { width: number; height: number };
   setCanvasSize: (size: { width: number; height: number }) => void;
   flashOpacity: SharedValue<number>;
+  fogRadius: SharedValue<number>;
 };
 
 export const GameContext = createContext<GameContextType | null>(null);

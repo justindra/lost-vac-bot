@@ -33,3 +33,8 @@ export const useFlash = () => {
   const { flashOpacity } = useGame();
   return flashOpacity;
 };
+
+export const useFog = () => {
+  const { fogRadius } = useGame();
+  return fogRadius;
+};
