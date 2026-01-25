@@ -7,6 +7,7 @@ import {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAudioPlayer } from "expo-audio";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GameContext } from "./context";
 import { generateMaze } from "@/src/maze/generate";
 import { resolveCollisions } from "@/src/maze/collision";
@@ -27,6 +28,8 @@ const SPEED = 3;
 const EXIT_THRESHOLD = PLAYER_RADIUS; // Distance to trigger exit
 const FLASH_DURATION = 400; // ms
 const COUNTDOWN_DURATION = 3000; // ms — matches countdown-start.mp3 length
+
+const HIGH_SCORE_KEY = "lostRoomba_highScore";
 
 // Audio sources
 const countdownSound = require("@/assets/sounds/countdown-start.mp3");
@@ -68,6 +71,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   // Coverage tracking: cells visited in current maze and cumulative score
   const [visitedCells, setVisitedCells] = useState<Set<number>>(new Set());
   const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
   // Shared values for worklet access to maze grid info
   const mazeOffsetX = useSharedValue(0);
   const mazeOffsetY = useSharedValue(0);
@@ -88,6 +92,21 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     bgMusicPlayer.loop = true;
     bgMusicPlayer.volume = 0.3;
   }, [bgMusicPlayer]);
+
+  // Load high score from storage on mount
+  useEffect(() => {
+    const loadHighScore = async () => {
+      try {
+        const stored = await AsyncStorage.getItem(HIGH_SCORE_KEY);
+        if (stored !== null) {
+          setHighScore(parseInt(stored, 10));
+        }
+      } catch (error) {
+        console.warn("Failed to load high score:", error);
+      }
+    };
+    loadHighScore();
+  }, []);
 
   const [countdownActive, setCountdownActive] = useState(false);
 
@@ -314,15 +333,26 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     ],
   );
 
-  const handleGameOver = useCallback(() => {
+  const handleGameOver = useCallback(async () => {
     // Stop background music
     bgMusicPlayer.pause();
 
     // Play game-over sound, then trigger navigation when it completes
     gameOverPlayer.seekTo(0);
     gameOverPlayer.play();
+
+    // Update high score if current score is higher
+    if (score > highScore) {
+      setHighScore(score);
+      try {
+        await AsyncStorage.setItem(HIGH_SCORE_KEY, score.toString());
+      } catch (error) {
+        console.warn("Failed to save high score:", error);
+      }
+    }
+
     setGameOver(true);
-  }, [gameOverPlayer, bgMusicPlayer]);
+  }, [gameOverPlayer, bgMusicPlayer, score, highScore]);
 
   const restartGame = useCallback(() => {
     setGameOver(false);
@@ -493,6 +523,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       restartGame,
       level,
       score,
+      highScore,
       visitedCells,
       countdownActive,
       powerUpsCollected,
@@ -513,6 +544,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       restartGame,
       level,
       score,
+      highScore,
       visitedCells,
       countdownActive,
       powerUpsCollected,

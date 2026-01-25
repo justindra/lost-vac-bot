@@ -18,6 +18,7 @@ type GameContextType = {
   restartGame: () => void;
   level: number;
   score: number;
+  highScore: number;
   visitedCells: Set<number>;
   countdownActive: boolean;
   powerUpsCollected: boolean[];

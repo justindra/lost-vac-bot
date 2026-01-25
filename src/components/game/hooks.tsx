@@ -54,6 +54,11 @@ export const useScore = () => {
   return score;
 };
 
+export const useHighScore = () => {
+  const { highScore } = useGame();
+  return highScore;
+};
+
 export const useVisitedCells = () => {
   const { visitedCells } = useGame();
   return visitedCells;
