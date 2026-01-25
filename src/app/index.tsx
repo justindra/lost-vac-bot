@@ -41,7 +41,7 @@ export default function StartScreen() {
           High Score: {highScore}
         </Text>
       )}
-      <Button label="START" onPress={() => router.replace("/game")} />
+      <Button label="START" onPress={() => router.replace("/story")} />
     </View>
   );
 }

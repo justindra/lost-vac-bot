@@ -28,6 +28,7 @@ export default function RootLayout() {
           headerShown: false,
         }}
       >
+        <Stack.Screen name="story" options={{ animation: "fade" }} />
         <Stack.Screen name="game" options={{ animation: "fade" }} />
         <Stack.Screen name="game-over" options={{ animation: "fade" }} />
       </Stack>
