@@ -7,6 +7,7 @@ type GameContextType = {
   joystickY: SharedValue<number>;
   playerX: SharedValue<number>;
   playerY: SharedValue<number>;
+  playerRadius: SharedValue<number>;
   mazeData: MazeData | null;
   canvasSize: { width: number; height: number };
   setCanvasSize: (size: { width: number; height: number }) => void;

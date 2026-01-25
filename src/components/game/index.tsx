@@ -3,6 +3,7 @@ import {
   useSharedValue,
   useFrameCallback,
   withTiming,
+  Easing,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAudioPlayer } from "expo-audio";
@@ -44,6 +45,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const joystickY = useSharedValue(0);
   const playerX = useSharedValue(0);
   const playerY = useSharedValue(0);
+  const playerRadius = useSharedValue(PLAYER_RADIUS);
 
   const [canvasSize, setCanvasSizeState] = useState({ width: 0, height: 0 });
   const [mazeData, setMazeData] = useState<MazeData | null>(null);
@@ -158,7 +160,13 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   const startCountdown = useCallback(() => {
     // Make fog overlay invisible and radius full (so gradient covers entire screen)
     fogOpacity.value = 0;
-    fogRadius.value = FOG_INITIAL_RADIUS;
+    fogRadius.value =
+      FOG_MIN_RADIUS +
+      (FOG_INITIAL_RADIUS - FOG_MIN_RADIUS) * (battery.value / 100);
+
+    // Set player radius to be big so that it seem like it is falling down into the maze
+    playerRadius.value = 50;
+
     // Block movement
     transitioning.value = true;
     setCountdownActive(true);
@@ -170,13 +178,15 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     // Start background music
     bgMusicPlayer.play();
 
-    // Animate both: fog fades in AND radius shrinks to battery-appropriate level
-    fogOpacity.value = withTiming(1, { duration: COUNTDOWN_DURATION });
-    const targetFogRadius =
-      FOG_MIN_RADIUS +
-      (FOG_INITIAL_RADIUS - FOG_MIN_RADIUS) * (battery.value / 100);
-    fogRadius.value = withTiming(targetFogRadius, {
+    // Animate both: fog fades in
+    fogOpacity.value = withTiming(1, {
       duration: COUNTDOWN_DURATION,
+    });
+
+    // Player radius shrinks to normal size
+    playerRadius.value = withTiming(PLAYER_RADIUS, {
+      duration: COUNTDOWN_DURATION,
+      easing: Easing.bounce,
     });
 
     // After countdown completes, unblock movement
@@ -507,6 +517,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       joystickY,
       playerX,
       playerY,
+      playerRadius,
       mazeData,
       canvasSize,
       setCanvasSize,
@@ -528,6 +539,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       joystickY,
       playerX,
       playerY,
+      playerRadius,
       mazeData,
       canvasSize,
       setCanvasSize,

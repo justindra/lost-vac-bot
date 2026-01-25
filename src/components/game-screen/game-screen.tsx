@@ -33,7 +33,7 @@ const BATTERY_TERMINAL_WIDTH = 6;
 const BATTERY_TERMINAL_HEIGHT = 3;
 
 const GameScreen: React.FC = () => {
-  const { playerX, playerY } = usePlayer();
+  const { playerX, playerY, playerRadius } = usePlayer();
   const mazeData = useMaze();
   const visitedCells = useVisitedCells();
   const { canvasSize, setCanvasSize } = useCanvasSize();
@@ -52,6 +52,7 @@ const GameScreen: React.FC = () => {
   const fogCenter = useDerivedValue(() => vec(playerX.value, playerY.value));
   const fogR = useDerivedValue(() => fogRadius.value);
   const fogAlpha = useDerivedValue(() => fogOpacity.value);
+  const playerR = useDerivedValue(() => playerRadius.value);
 
   return (
     <View
@@ -100,7 +101,7 @@ const GameScreen: React.FC = () => {
           {/* Maze walls */}
           <Maze walls={mazeData.walls} />
           {/* Player */}
-          <Circle cx={cx} cy={cy} r={PLAYER_RADIUS} color={PLAYER_COLOR} />
+          <Circle cx={cx} cy={cy} r={playerR} color={PLAYER_COLOR} />
           {/* Fog of war overlay */}
           <Rect
             x={0}

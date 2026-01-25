@@ -15,8 +15,8 @@ export const useJoystick = () => {
 };
 
 export const usePlayer = () => {
-  const { playerX, playerY } = useGame();
-  return { playerX, playerY };
+  const { playerX, playerY, playerRadius } = useGame();
+  return { playerX, playerY, playerRadius };
 };
 
 export const useMaze = () => {
