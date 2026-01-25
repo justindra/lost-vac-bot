@@ -18,9 +18,9 @@ import {
   BATTERY_DRAIN_RATE,
   STARTING_BATTERY,
   BATTERY_POWERUP_VALUE,
-  BATTERY_POWERUP_MIN_LEVEL,
   BATTERY_LOW_THRESHOLD,
   BATTERY_POWERUP_RADIUS,
+  BATTERY_HIGH_THRESHOLD,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
@@ -150,13 +150,10 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   // Determine how many power-ups to place based on level and battery
-  const getPowerUpCount = useCallback(
-    (currentLevel: number, currentBattery: number) => {
-      if (currentLevel < BATTERY_POWERUP_MIN_LEVEL) return 0;
-      return currentBattery < BATTERY_LOW_THRESHOLD ? 2 : 1;
-    },
-    [],
-  );
+  const getPowerUpCount = useCallback((currentBattery: number) => {
+    if (currentBattery > BATTERY_HIGH_THRESHOLD) return 0;
+    return currentBattery < BATTERY_LOW_THRESHOLD ? 2 : 1;
+  }, []);
 
   // Start the countdown sequence: show full map, animate fog closed, block movement
   const startCountdown = useCallback(() => {
@@ -210,8 +207,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     flashOpacity.value = withTiming(0, { duration: FLASH_DURATION });
 
     // Determine power-up count for the next level
-    const nextLevel = level + 1;
-    const puCount = getPowerUpCount(nextLevel, battery.value);
+    const puCount = getPowerUpCount(battery.value);
 
     // Generate new maze, starting where the previous exit was
     const maze = generateMaze(width, height, lastExitLocation.current, puCount);

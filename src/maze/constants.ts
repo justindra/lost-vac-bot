@@ -15,6 +15,6 @@ export const BATTERY_DRAIN_RATE = 1; // percent per second (100s total life)
 
 // Battery power-up
 export const BATTERY_POWERUP_VALUE = 20; // percent restored per pickup
-export const BATTERY_POWERUP_MIN_LEVEL = 5; // first level batteries appear
+export const BATTERY_HIGH_THRESHOLD = 70; // above this %, no batteries spawned
 export const BATTERY_LOW_THRESHOLD = 30; // below this %, spawn 2 batteries
 export const BATTERY_POWERUP_RADIUS = 8; // pickup detection radius (px)
