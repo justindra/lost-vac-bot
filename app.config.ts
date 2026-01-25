@@ -1,6 +1,8 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
 import { version } from "./package.json";
 
+const BUNDLE_IDENTIFIER = "com.justindra.lostroomba";
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "lost-roomba",
@@ -12,9 +14,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {
+    bundleIdentifier: BUNDLE_IDENTIFIER,
     supportsTablet: false,
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
+    package: BUNDLE_IDENTIFIER,
     adaptiveIcon: {
       backgroundColor: "#E6F4FE",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -43,9 +50,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     "expo-audio",
     "expo-font",
+    "expo-asset",
   ],
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    eas: {
+      projectId: "47dbffea-dcd6-4e11-ae9b-dd5a258bba80",
+    },
   },
 });
