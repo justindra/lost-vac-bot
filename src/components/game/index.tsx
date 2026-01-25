@@ -3,7 +3,6 @@ import {
   useSharedValue,
   useFrameCallback,
   withTiming,
-  runOnJS,
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { useAudioPlayer } from "expo-audio";
@@ -134,7 +133,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     });
   }, []);
 
-  // Callback when a power-up is collected (called from worklet via runOnJS)
+  // Callback when a power-up is collected (called from worklet via scheduleOnRN)
   const collectPowerUp = useCallback(
     (index: number) => {
       setPowerUpsCollected((prev) => {
@@ -470,7 +469,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
           // Add battery (capped at 100)
           battery.value = Math.min(100, battery.value + BATTERY_POWERUP_VALUE);
           // Notify JS thread for state update and sound
-          runOnJS(collectPowerUp)(i);
+          scheduleOnRN(collectPowerUp, i);
         }
       }
     }
@@ -487,7 +486,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     // Check for game over (battery depleted)
     if (battery.value <= 0) {
       transitioning.value = true;
-      runOnJS(handleGameOver)();
+      scheduleOnRN(handleGameOver);
       return;
     }
 
@@ -498,7 +497,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
 
     if (dist < EXIT_THRESHOLD) {
       transitioning.value = true;
-      runOnJS(regenerateMaze)();
+      scheduleOnRN(regenerateMaze);
     }
   });
 
