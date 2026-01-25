@@ -45,8 +45,8 @@ export const useBattery = () => {
 };
 
 export const useGameOver = () => {
-  const { gameOver, restartGame, level, score } = useGame();
-  return { gameOver, restartGame, level, score };
+  const { gameOver, restartGame, resetGame, level, score } = useGame();
+  return { gameOver, restartGame, resetGame, level, score };
 };
 
 export const useScore = () => {

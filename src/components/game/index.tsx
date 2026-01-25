@@ -423,6 +423,45 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     bgMusicPlayer,
   ]);
 
+  const resetGame = useCallback(() => {
+    // Stop background music
+    bgMusicPlayer.pause();
+
+    // Reset all game state
+    setGameOver(false);
+    setLevel(1);
+    setScore(0);
+    setVisitedCells(new Set());
+    battery.value = STARTING_BATTERY;
+    fogRadius.value = FOG_INITIAL_RADIUS;
+    lastExitLocation.current = undefined;
+    transitioning.value = false;
+
+    // Clear maze data so it re-initializes on next game start
+    setMazeData(null);
+    canvasSizeRef.current = { width: 0, height: 0 };
+
+    // Reset shared values
+    wallsFlat.value = [];
+    wallCount.value = 0;
+
+    // Reset power-ups
+    powerUpsFlat.value = [];
+    powerUpsCount.value = 0;
+    powerUpsCollectedSV.value = [];
+    setPowerUpsCollected([]);
+  }, [
+    bgMusicPlayer,
+    battery,
+    fogRadius,
+    transitioning,
+    wallsFlat,
+    wallCount,
+    powerUpsFlat,
+    powerUpsCount,
+    powerUpsCollectedSV,
+  ]);
+
   useFrameCallback((frameInfo) => {
     "worklet";
     const dt = frameInfo.timeSincePreviousFrame ?? 16.67;
@@ -534,6 +573,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       battery,
       gameOver,
       restartGame,
+      resetGame,
       level,
       score,
       highScore,
@@ -556,6 +596,7 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
       battery,
       gameOver,
       restartGame,
+      resetGame,
       level,
       score,
       highScore,

@@ -17,6 +17,7 @@ type GameContextType = {
   battery: SharedValue<number>;
   gameOver: boolean;
   restartGame: () => void;
+  resetGame: () => void;
   level: number;
   score: number;
   highScore: number;

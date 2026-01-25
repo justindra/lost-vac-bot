@@ -61,7 +61,7 @@ function BatteryIndicator() {
 }
 
 export default function GameScreen() {
-  const { gameOver, score, restartGame } = useGameOver();
+  const { gameOver, score, restartGame, resetGame } = useGameOver();
   const router = useRouter();
 
   useEffect(() => {
@@ -72,6 +72,11 @@ export default function GameScreen() {
       });
     }
   }, [gameOver, score, router]);
+
+  const handleBackToMenu = () => {
+    resetGame();
+    router.replace("/");
+  };
 
   return (
     <View
@@ -88,7 +93,7 @@ export default function GameScreen() {
           flex: 1,
           alignItems: "center",
           paddingVertical: spacing.xl,
-          paddingLeft: spacing.md,
+          paddingLeft: spacing.xl,
           justifyContent: "space-between",
         }}
       >
@@ -104,7 +109,20 @@ export default function GameScreen() {
             Score: {score}
           </Text>
         </View>
-        <Button onPress={restartGame} label="RESTART" size="sm" />
+        <View style={{ alignItems: "center", gap: spacing.md }}>
+          <Button
+            onPress={handleBackToMenu}
+            label="MAIN MENU"
+            size="sm"
+            style={{ width: "100%" }}
+          />
+          <Button
+            onPress={restartGame}
+            label="RESTART"
+            size="sm"
+            style={{ width: "100%" }}
+          />
+        </View>
       </View>
       {/* Game Screen */}
       <View style={{ flex: 3, padding: spacing.md }}>

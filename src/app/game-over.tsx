@@ -67,7 +67,7 @@ export default function GameOverScreen() {
           opacity: 0.7,
         }}
       >
-        Best: {highScore}
+        High Score: {highScore}
       </Text>
       <View style={{ marginTop: 16 }}>
         <Button label="RESTART" onPress={handleRestart} />

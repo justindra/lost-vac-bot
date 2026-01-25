@@ -126,9 +126,7 @@ export default function StoryScreen() {
 
     return () => {
       clearTimeout(startDelay);
-      if (typingPlayer) {
-        typingPlayer.pause();
-      }
+      // No need to pause - useAudioPlayer handles cleanup on unmount
     };
   }, []);
 
@@ -154,7 +152,10 @@ export default function StoryScreen() {
       <ScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: spacing.xl }}
+        contentContainerStyle={{
+          paddingBottom: spacing.xl,
+          paddingHorizontal: spacing.xl,
+        }}
         showsVerticalScrollIndicator={false}
       >
         <Text
