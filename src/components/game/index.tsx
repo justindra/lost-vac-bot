@@ -21,10 +21,10 @@ import {
   BATTERY_LOW_THRESHOLD,
   BATTERY_POWERUP_RADIUS,
   BATTERY_HIGH_THRESHOLD,
+  PLAYER_MAX_SPEED,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
-const SPEED = 3;
 const EXIT_THRESHOLD = PLAYER_RADIUS; // Distance to trigger exit
 const FLASH_DURATION = 400; // ms
 const COUNTDOWN_DURATION = 3000; // ms — matches countdown-start.mp3 length
@@ -423,8 +423,8 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     if (transitioning.value) return;
 
     // Compute intended position
-    const newX = playerX.value + joystickX.value * SPEED * dtRatio;
-    const newY = playerY.value + joystickY.value * SPEED * dtRatio;
+    const newX = playerX.value + joystickX.value * PLAYER_MAX_SPEED * dtRatio;
+    const newY = playerY.value + joystickY.value * PLAYER_MAX_SPEED * dtRatio;
 
     // Resolve collisions with maze walls
     const resolved = resolveCollisions(

@@ -5,6 +5,8 @@ export const CELL_SIZE = PLAYER_RADIUS * 4; // 40px — corridors are 2x player 
 export const WALL_THICKNESS = 2;
 export const WALL_COLOR = colors.main;
 
+export const PLAYER_MAX_SPEED = 5; // px per frame at 60fps (~180px/s)
+
 // Fog of war
 export const FOG_INITIAL_RADIUS = 400;
 export const FOG_MIN_RADIUS = PLAYER_RADIUS * 2; // 20px — always see immediate surroundings
