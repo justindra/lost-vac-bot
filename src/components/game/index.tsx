@@ -10,7 +10,7 @@ import { useAudioPlayer } from "expo-audio";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GameContext } from "./context";
 import { generateMaze } from "@/src/maze/generate";
-import { resolveCollisions } from "@/src/maze/collision";
+import { moveWithCollision } from "@/src/maze/collision";
 import {
   PLAYER_RADIUS,
   FOG_INITIAL_RADIUS,
@@ -21,7 +21,8 @@ import {
   BATTERY_LOW_THRESHOLD,
   BATTERY_POWERUP_RADIUS,
   BATTERY_HIGH_THRESHOLD,
-  PLAYER_MAX_SPEED,
+  PLAYER_MIN_SPEED,
+  PLAYER_SPEED_SCORE_FACTOR,
 } from "@/src/maze/constants";
 import type { MazeData, MazeLocation } from "@/src/maze/types";
 
@@ -431,14 +432,20 @@ export const GameProvider: React.FC<React.PropsWithChildren> = ({
     if (wallCount.value === 0) return;
     if (transitioning.value) return;
 
-    // Compute intended position
-    const newX = playerX.value + joystickX.value * PLAYER_MAX_SPEED * dtRatio;
-    const newY = playerY.value + joystickY.value * PLAYER_MAX_SPEED * dtRatio;
+    const speed = Math.floor(
+      PLAYER_MIN_SPEED + PLAYER_SPEED_SCORE_FACTOR * score,
+    );
 
-    // Resolve collisions with maze walls
-    const resolved = resolveCollisions(
-      newX,
-      newY,
+    // Compute intended movement delta
+    const moveDx = joystickX.value * speed * dtRatio;
+    const moveDy = joystickY.value * speed * dtRatio;
+
+    // Move with swept collision detection to prevent tunneling
+    const resolved = moveWithCollision(
+      playerX.value,
+      playerY.value,
+      moveDx,
+      moveDy,
       wallsFlat.value,
       wallCount.value,
     );

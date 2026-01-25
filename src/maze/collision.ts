@@ -1,4 +1,4 @@
-import { PLAYER_RADIUS, WALL_THICKNESS } from "./constants";
+import { PLAYER_RADIUS, WALL_THICKNESS, MAX_STEP_DISTANCE } from "./constants";
 
 /**
  * All functions in this file must be worklet-compatible:
@@ -70,6 +70,57 @@ export function resolveCollisions(
         y += ny * penetration;
       }
     }
+  }
+
+  return [x, y];
+}
+
+/**
+ * Move player with swept collision detection.
+ * Subdivides movement into safe steps to prevent tunneling through walls.
+ *
+ * @param startX - Current player X position
+ * @param startY - Current player Y position
+ * @param dx - Intended X movement delta
+ * @param dy - Intended Y movement delta
+ * @param wallsFlat - Flat array of wall segments [x1,y1,x2,y2, ...]
+ * @param wallCount - Number of walls
+ * @returns [finalX, finalY] - Position after collision-safe movement
+ */
+export function moveWithCollision(
+  startX: number,
+  startY: number,
+  dx: number,
+  dy: number,
+  wallsFlat: number[],
+  wallCount: number,
+): number[] {
+  "worklet";
+
+  const moveDistance = Math.sqrt(dx * dx + dy * dy);
+
+  // If movement is small enough, just do single-step collision resolution
+  if (moveDistance <= MAX_STEP_DISTANCE) {
+    return resolveCollisions(startX + dx, startY + dy, wallsFlat, wallCount);
+  }
+
+  // Subdivide into safe steps
+  const steps = Math.ceil(moveDistance / MAX_STEP_DISTANCE);
+  const stepX = dx / steps;
+  const stepY = dy / steps;
+
+  let x = startX;
+  let y = startY;
+
+  for (let i = 0; i < steps; i++) {
+    const resolved = resolveCollisions(
+      x + stepX,
+      y + stepY,
+      wallsFlat,
+      wallCount,
+    );
+    x = resolved[0];
+    y = resolved[1];
   }
 
   return [x, y];
