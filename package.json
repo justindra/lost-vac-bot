@@ -1,7 +1,7 @@
 {
-  "name": "lost-roomba",
+  "name": "lost-vac-bot",
   "main": "expo-router/entry",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",

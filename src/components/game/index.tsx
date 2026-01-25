@@ -29,7 +29,7 @@ const EXIT_THRESHOLD = PLAYER_RADIUS; // Distance to trigger exit
 const FLASH_DURATION = 400; // ms
 const COUNTDOWN_DURATION = 3000; // ms — matches countdown-start.mp3 length
 
-const HIGH_SCORE_KEY = "lostRoomba_highScore";
+const HIGH_SCORE_KEY = "lost-vac-bot-high-score";
 
 // Audio sources
 const countdownSound = require("@/assets/sounds/countdown-start.mp3");

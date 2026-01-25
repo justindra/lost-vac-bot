@@ -1,16 +1,16 @@
 import type { ExpoConfig, ConfigContext } from "expo/config";
 import { version } from "./package.json";
 
-const BUNDLE_IDENTIFIER = "com.justindra.lostroomba";
+const BUNDLE_IDENTIFIER = "com.justindra.lostvacbot";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "lost-roomba",
-  slug: "lost-roomba",
+  name: "lost-vac-bot",
+  slug: "lost-vac-bot",
   version,
   orientation: "landscape",
   icon: "./assets/images/icon.png",
-  scheme: "lostroomba",
+  scheme: "lostvacbot",
   userInterfaceStyle: "automatic",
   newArchEnabled: true,
   ios: {

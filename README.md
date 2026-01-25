@@ -1,6 +1,6 @@
-# Lost Roomba
+# Lost Vac Bot
 
-A simple mobile game that allows user to control a Roomba that needs to return to it's charging station before the battery runs out. Game is a birds-eye view style and the Roomba has a fog of war around it which means you can only see a small area around the Roomba at any given time.
+A simple mobile game that allows user to control a vacuum bot that needs to return to it's charging station before the battery runs out. Game is a birds-eye view style and the vacuum bot has a fog of war around it which means you can only see a small area around the vacuum bot at any given time.
 
 ## Get started
 

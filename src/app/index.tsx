@@ -27,7 +27,7 @@ export default function StartScreen() {
           textAlign: "center",
         }}
       >
-        LOST ROOMBA
+        LOST VAC BOT
       </Text>
       {highScore > 0 && (
         <Text
