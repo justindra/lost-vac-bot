@@ -1,0 +1,362 @@
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap");
+
+/* CSS Variables */
+:root {
+  --color-bg: #000;
+  --color-main: #0f0;
+  --color-main-dim: #0a0;
+  --color-text: #ccc;
+  --color-text-muted: #888;
+  --font-heading: "Press Start 2P", monospace;
+  --font-body: "VT323", monospace;
+  --max-width: 1000px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 48px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 20px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  color: var(--color-main);
+  text-shadow: 0 0 10px var(--color-main-dim);
+}
+
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  letter-spacing: 2px;
+}
+
+h2 {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  margin-bottom: var(--spacing-lg);
+}
+
+h3 {
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-md);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+a {
+  color: var(--color-main);
+  text-decoration: none;
+  transition: text-shadow 0.2s ease;
+}
+
+a:hover {
+  text-shadow: 0 0 8px var(--color-main);
+}
+
+/* Layout */
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+/* Header */
+header {
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+  border-bottom: 2px solid var(--color-main-dim);
+}
+
+header .tagline {
+  font-size: 1.25rem;
+  margin-top: var(--spacing-lg);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Navigation */
+nav {
+  padding: var(--spacing-md) 0;
+  border-bottom: 1px solid var(--color-main-dim);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+nav a {
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Sections */
+section {
+  padding: var(--spacing-xl) 0;
+  border-bottom: 1px solid var(--color-main-dim);
+}
+
+section:last-of-type {
+  border-bottom: none;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+}
+
+.hero-image {
+  margin-top: var(--spacing-xl);
+  max-width: 100%;
+  border: 2px solid var(--color-main);
+  box-shadow: 0 0 20px var(--color-main-dim);
+}
+
+.hero-image img {
+  display: block;
+  max-width: 300px;
+  height: auto;
+  margin: 0 auto;
+}
+
+/* Story Section */
+.story {
+  text-align: center;
+}
+
+.story-lead {
+  font-size: 1.5rem;
+  color: var(--color-main);
+  font-style: italic;
+  margin-bottom: var(--spacing-lg);
+}
+
+.story p {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Features Section */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.feature-card {
+  border: 1px solid var(--color-main-dim);
+  padding: var(--spacing-lg);
+  background: rgba(0, 255, 0, 0.02);
+}
+
+.feature-card h3 {
+  margin-bottom: var(--spacing-md);
+}
+
+.feature-list {
+  list-style: none;
+  margin-top: var(--spacing-lg);
+}
+
+.feature-list li {
+  padding: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+  position: relative;
+}
+
+.feature-list li::before {
+  content: ">";
+  position: absolute;
+  left: 0;
+  top: var(--spacing-md);
+  line-height: 1.6;
+  color: var(--color-main);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+}
+
+/* Screenshots Section */
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+}
+
+.screenshot {
+  border: 2px solid var(--color-main-dim);
+  overflow: hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.screenshot:hover {
+  border-color: var(--color-main);
+  box-shadow: 0 0 15px var(--color-main-dim);
+}
+
+.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Footer */
+footer {
+  padding: var(--spacing-xl) 0;
+  text-align: center;
+  border-top: 2px solid var(--color-main-dim);
+}
+
+footer nav {
+  border: none;
+  margin-bottom: var(--spacing-lg);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-lg);
+}
+
+.footer-links a {
+  font-size: 1rem;
+}
+
+.contact {
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+.copyright {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Legal Pages */
+.legal {
+  padding: var(--spacing-xl) 0;
+}
+
+.legal h1 {
+  margin-bottom: var(--spacing-lg);
+}
+
+.legal h2 {
+  margin-top: var(--spacing-xl);
+  font-size: 0.875rem;
+}
+
+.legal p,
+.legal ul {
+  margin-bottom: var(--spacing-md);
+}
+
+.legal ul {
+  list-style: none;
+  padding-left: var(--spacing-lg);
+}
+
+.legal ul li {
+  position: relative;
+  padding: var(--spacing-sm) 0;
+}
+
+.legal ul li::before {
+  content: "-";
+  position: absolute;
+  left: calc(-1 * var(--spacing-md));
+  color: var(--color-main);
+}
+
+.legal .effective-date {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: var(--spacing-xl);
+}
+
+/* Back Link */
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--spacing-lg);
+  font-family: var(--font-heading);
+  font-size: 0.625rem;
+}
+
+.back-link::before {
+  content: "< ";
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    font-size: 18px;
+  }
+
+  .hero-image img {
+    max-width: 250px;
+  }
+
+  nav ul {
+    gap: var(--spacing-md);
+  }
+
+  .screenshots-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Scanline Effect (subtle) */
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.1) 0px,
+    rgba(0, 0, 0, 0.1) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 9999;
+}
