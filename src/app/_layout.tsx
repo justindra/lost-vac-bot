@@ -8,7 +8,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    PressStart2P: require("../../assets/fonts/PressStart2P-Regular.ttf"),
+    PressStart2P: require("../../assets/fonts/Press_Start_2P/PressStart2P-Regular.ttf"),
   });
 
   useEffect(() => {

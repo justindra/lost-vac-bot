@@ -31,7 +31,9 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -43,5 +45,3 @@ app-example
 /android
 *.aab
 *.ipa
-
-lost-vac-bot-6e1a96ac6417.json
